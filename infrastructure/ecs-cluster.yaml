@@ -13,6 +13,9 @@ Parameters:
         Type: String
         Default: c4.large
 
+    KeyName:
+        Type: String
+
     ClusterSize:
         Description: How many ECS hosts do you want to initially deploy?
         Type: Number
@@ -73,7 +76,7 @@ Mappings:
         ap-south-1:
             AMI: ami-2e461a41
         sa-east-1:
-            AMI: ami-d44008b8	
+            AMI: ami-d44008b8
 
 Resources:
 
@@ -115,6 +118,7 @@ Resources:
         Properties:
             ImageId:  !FindInMap [AWSRegionToAMI, !Ref "AWS::Region", AMI]
             InstanceType: !Ref InstanceType
+            KeyName: !Ref KeyName
             SecurityGroups:
                 - !Ref SecurityGroup
             IamInstanceProfile: !Ref ECSInstanceProfile
