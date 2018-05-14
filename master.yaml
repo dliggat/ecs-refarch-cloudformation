@@ -14,12 +14,21 @@ Description: >
     Last Modified: 22nd September 2016
     Author: Paul Maddox <pmaddox@amazon.com>
 
-Resources:
+Parameters:
+    TemplateBucket:
+        Description: Bucket used to store the templates for the nested stacks
+        Type: String
 
+    KeyName:
+        Type: String
+
+
+Resources:
     VPC:
         Type: AWS::CloudFormation::Stack
         Properties:
             TemplateURL: https://s3.amazonaws.com/dliggat-tam-public/cfn/infrastructure/vpc.yaml
+            TemplateURL: !Sub 'https://s3.amazonaws.com/${TemplateBucket}/infrastructure/vpc.yaml'
             Parameters:
                 EnvironmentName:    !Ref AWS::StackName
                 VpcCIDR:            10.180.0.0/16
@@ -31,7 +40,7 @@ Resources:
     SecurityGroups:
         Type: AWS::CloudFormation::Stack
         Properties:
-            TemplateURL: https://s3.amazonaws.com/dliggat-tam-public/cfn/infrastructure/security-groups.yaml
+            TemplateURL: !Sub 'https://s3.amazonaws.com/${TemplateBucket}/infrastructure/security-groups.yaml'
             Parameters:
                 EnvironmentName: !Ref AWS::StackName
                 VPC: !GetAtt VPC.Outputs.VPC
@@ -40,7 +49,7 @@ Resources:
     ALB:
         Type: AWS::CloudFormation::Stack
         Properties:
-            TemplateURL: https://s3.amazonaws.com/dliggat-tam-public/cfn/infrastructure/load-balancers.yaml
+            TemplateURL: !Sub 'https://s3.amazonaws.com/${TemplateBucket}/infrastructure/load-balancers.yaml'
             Parameters:
                 EnvironmentName: !Ref AWS::StackName
                 VPC: !GetAtt VPC.Outputs.VPC
@@ -50,11 +59,11 @@ Resources:
     Bastion:
         Type: AWS::CloudFormation::Stack
         Properties:
-            TemplateURL: https://s3.amazonaws.com/dliggat-tam-public/cfn/infrastructure/bastion.yaml
+            TemplateURL: !Sub 'https://s3.amazonaws.com/${TemplateBucket}/infrastructure/bastion.yaml'
             Parameters:
                 EnvironmentName: !Ref AWS::StackName
                 InstanceType: t2.large
-                KeyName: dliggat-tam
+                KeyName: !Ref KeyName
                 AmiId: ami-f2d3638a
                 VPC: !GetAtt VPC.Outputs.VPC
                 Subnets: !GetAtt VPC.Outputs.PublicSubnets
@@ -62,12 +71,12 @@ Resources:
     ECS:
         Type: AWS::CloudFormation::Stack
         Properties:
-            TemplateURL: https://s3.amazonaws.com/dliggat-tam-public/cfn/infrastructure/ecs-cluster.yaml
+            TemplateURL: !Sub 'https://s3.amazonaws.com/${TemplateBucket}/infrastructure/ecs-cluster.yaml'
             Parameters:
                 EnvironmentName: !Ref AWS::StackName
                 InstanceType: t2.large
                 ClusterSize: 2
-                KeyName: dliggat-tam
+                KeyName: !Ref KeyName
                 VPC: !GetAtt VPC.Outputs.VPC
                 SecurityGroup: !GetAtt SecurityGroups.Outputs.ECSHostSecurityGroup
                 Subnets: !GetAtt VPC.Outputs.PrivateSubnets
@@ -75,7 +84,7 @@ Resources:
     ProductService:
         Type: AWS::CloudFormation::Stack
         Properties:
-            TemplateURL: https://s3.amazonaws.com/dliggat-tam-public/cfn/services/product-service/service.yaml
+            TemplateURL: !Sub 'https://s3.amazonaws.com/${TemplateBucket}/services/product-service/service.yaml'
             Parameters:
                 VPC: !GetAtt VPC.Outputs.VPC
                 Cluster: !GetAtt ECS.Outputs.Cluster
@@ -86,7 +95,7 @@ Resources:
     WebsiteService:
         Type: AWS::CloudFormation::Stack
         Properties:
-            TemplateURL: https://s3.amazonaws.com/dliggat-tam-public/cfn/services/website-service/service.yaml
+            TemplateURL: !Sub 'https://s3.amazonaws.com/${TemplateBucket}/services/website-service/service.yaml'
             Parameters:
                 VPC: !GetAtt VPC.Outputs.VPC
                 Cluster: !GetAtt ECS.Outputs.Cluster
@@ -99,7 +108,7 @@ Resources:
     LifecycleHook:
         Type: AWS::CloudFormation::Stack
         Properties:
-            TemplateURL: https://s3.amazonaws.com/dliggat-tam-public/cfn/infrastructure/lifecyclehook.yaml
+            TemplateURL: !Sub 'https://s3.amazonaws.com/${TemplateBucket}/infrastructure/lifecyclehook.yaml'
             Parameters:
                 Cluster: !GetAtt ECS.Outputs.Cluster
                 ECSAutoScalingGroupName: !GetAtt ECS.Outputs.ECSAutoScalingGroupName
