@@ -20,6 +20,15 @@ STACKNAME=DemoECS
 
 aws cloudformation create-stack  --stack-name ${STACKNAME} \
 --template-body file://master.yaml                         \
+--capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM         \
 --parameters ParameterKey=TemplateBucket,ParameterValue=${BUCKET} ParameterKey=KeyName,ParameterValue=${KEYPAIR}
-
 ```
+
+## Retrieve the Outputs
+
+Retrieve the URL for the `ProductService` and `WebsiteService`.
+
+```bash
+aws cloudformation describe-stacks --stack-name ${STACKNAME} --query 'Stacks[0].Outputs'
+```
+
